@@ -1,0 +1,51 @@
+{
+  "name": "specguard",
+  "version": "0.0.0",
+  "description": "Language-agnostic framework for deterministically mapping behavior expectations to tests",
+  "type": "module",
+  "bin": {
+    "specguard": "./dist/specguard"
+  },
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "build:cli": "bun build src/index.ts --compile --outfile dist/specguard",
+    "build:install": "bun build src/install.ts --compile --outfile dist/specguard-install",
+    "dev": "bun run src/index.ts",
+    "release": "bun run scripts/release.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "vitest run tests/e2e",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "testing",
+    "specification",
+    "bdd",
+    "test-automation",
+    "behavior-driven-development",
+    "spec",
+    "test-verification"
+  ],
+  "author": "William Di Pasquale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dipasqualew/specguard.git"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "vitest": "^2.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "dependencies": {
+    "execa": "^9.0.0",
+    "fs-extra": "^11.2.0",
+    "picocolors": "^1.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

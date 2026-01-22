@@ -1,0 +1,5 @@
+# Specguard expectations are codeowned
+# This ensures all behavior expectations require approval before changing
+
+# All specguard folders throughout the repository
+**/specguard/ @dipasqualew

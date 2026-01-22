@@ -1,6 +1,10 @@
 # specguard
 
+> Language-agnostic framework for deterministically mapping behavior expectations to tests
+
 A language-agnostic framework for ensuring software behavior expectations are deterministically mapped to tests and validated by reviewer agents.
+
+**Built with TypeScript and Bun for maximum performance and type safety.**
 
 ## The Problem
 
@@ -12,6 +16,114 @@ As autonomous agents become more prevalent in software development, codeowners f
 - How do we verify the testing is appropriate to the change?
 
 **specguard** provides a framework to solve these issues.
+
+## Installation
+
+### Prerequisites
+
+- [Bun](https://bun.sh/) >= 1.0.0
+
+### Quick Install (from releases)
+
+Download the latest pre-built binary from GitHub releases:
+
+```bash
+# Download latest release (coming soon)
+curl -fsSL https://github.com/dipasqualew/specguard/releases/latest/download/specguard -o specguard
+chmod +x specguard
+mv specguard ~/.local/bin/  # or /usr/local/bin
+```
+
+### Install from Source
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/dipasqualew/specguard.git
+   cd specguard
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   bun install
+   ```
+
+3. Build the executable:
+
+   ```bash
+   bun run build
+   ```
+
+4. Install globally:
+
+   ```bash
+   cp dist/specguard ~/.local/bin/  # or /usr/local/bin
+   ```
+
+### Development
+
+Run directly without building:
+
+```bash
+bun run dev [options] [directory]
+```
+
+### Verify Installation
+
+```bash
+specguard --help
+```
+
+### Uninstall
+
+```bash
+# If installed to ~/.local/bin
+rm ~/.local/bin/specguard
+
+# If installed to /usr/local/bin
+sudo rm /usr/local/bin/specguard
+```
+
+## Quick Example
+
+```bash
+# Create a spec
+mkdir -p myapp/specguard
+cat > myapp/specguard/auth.md << 'EOF'
+# Authentication
+
+## Login
+
+levels: unit
+
+\`\`\`specguard
+Validate credentials
+Create session
+Return token
+\`\`\`
+EOF
+
+# Create a test
+mkdir -p myapp/unit
+cat > myapp/unit/auth.test.js << 'EOF'
+test("login", () => {
+  // step("Validate credentials")
+  const valid = validate(user, pass);
+
+  // step("Create session")
+  const session = createSession(user);
+
+  // step("Return token")
+  return session.token;
+});
+EOF
+
+# Verify
+specguard myapp
+# ✓ myapp/unit/auth.test.js
+# Summary: 1 passed, 0 failed
+```
 
 ## How It Works
 
@@ -44,10 +156,12 @@ The `levels` field defines which test levels this expectation applies to (comma-
 specguard mirrors the directory structure from the `specguard` folder to test files in the parent directory.
 
 **Example 1:** `parent/specguard/feature1.md`
+
 - `level: unit` → `parent/unit/feature1.md`
 - `level: integration` → `parent/integration/feature1.md`
 
 **Example 2:** `parent/specguard/capabilities/feature2.md`
+
 - `level: unit` → `parent/unit/capabilities/feature2.md`
 - `level: e2e` → `parent/e2e/capabilities/feature2.md`
 
@@ -56,34 +170,38 @@ specguard mirrors the directory structure from the `specguard` folder to test fi
 Use inline step markers in your test files. Inspired by Playwright's `step()` API, but implemented as comments for universal language support:
 
 **TypeScript (Vitest):**
+
 ```typescript
 test("my capability", async () => {
   // step("First step")
   const client = createClient();
-  
+
   // step("Second step")
   await client.connect();
 });
 ```
 
 **Python (pytest):**
+
 ```python
 def test_my_capability():
     # step("First step")
     client = create_client()
-    
+
     # step("Second step")
     client.connect()
 ```
 
-### 4. Verify with Shell Scripts
+### 4. Verify with TypeScript
 
-specguard uses `src/stepguard.sh` to verify that steps defined in specguard files are present in the corresponding test files. This script runs regular expressions to match step markers deterministically.
+specguard is built with TypeScript and Bun to verify that steps defined in specguard files are present in the corresponding test files. The CLI uses regular expressions to match step markers deterministically.
 
-Being a shell script makes specguard:
-- **Language-agnostic** - Works with any programming language
-- **Simple** - No complex runtime dependencies
-- **CI-friendly** - Easy to integrate into continuous integration pipelines
+Being built with Bun and TypeScript makes specguard:
+
+- **Language-agnostic** - Works with any programming language through comment-based step markers
+- **Fast** - Bun's performance ensures rapid verification even in large codebases
+- **Type-safe** - TypeScript provides robust error handling and maintainability
+- **CI-friendly** - Compiles to a standalone executable for easy CI/CD integration
 
 ## Why Not BDD?
 
@@ -136,15 +254,190 @@ This creates a collaborative workflow: agents can propose changes, but humans ha
 
 ## Getting Started
 
-1. Create a `specguard` folder in your project
-2. Write expectation files using the markdown template
-3. Add step markers to your existing tests
-4. Run `src/stepguard.sh` to verify step coverage
-5. (Optional) Use `src/review_specguard.sh` for agent-powered review
-6. Add your `specguard` folders to CODEOWNERS
+1. **Install specguard** (see Installation section above)
+
+2. **Create a `specguard` folder** in your project
+
+   ```bash
+   mkdir -p myproject/specguard
+   ```
+
+3. **Write expectation files** using the markdown template
+
+   ```bash
+   cat > myproject/specguard/authentication.md << 'EOF'
+   # Authentication
+
+   ## User Login
+
+   levels: unit
+
+   \`\`\`specguard
+   Validate credentials
+   Create session
+   Return auth token
+   \`\`\`
+   EOF
+   ```
+
+4. **Add step markers** to your existing tests
+
+   ```javascript
+   test("user login", () => {
+     // step("Validate credentials")
+     const valid = validateCredentials(user, pass);
+
+     // step("Create session")
+     const session = createSession(user);
+
+     // step("Return auth token")
+     return session.token;
+   });
+   ```
+
+5. **Run specguard** to verify step coverage
+
+   ```bash
+   specguard myproject
+   ```
+
+6. **Add to CI/CD**
+
+   ```yaml
+   # .github/workflows/test.yml
+   - name: Verify specifications
+     run: specguard .
+   ```
+
+7. **(Optional)** Use `src/review_specguard.sh` for agent-powered review
+
+8. **Add specguard folders to CODEOWNERS**
+
+   ```
+   # CODEOWNERS
+   **/specguard/ @your-team
+   ```
+
+## Usage
+
+### Basic Usage
+
+```bash
+# Verify specs in current directory
+specguard
+
+# Verify specs in specific directory
+specguard path/to/project
+
+# Show detailed step-by-step output
+specguard --verbose path/to/project
+```
+
+### Command Line Options
+
+```
+Usage: specguard [OPTIONS] [DIRECTORY]
+
+Options:
+  -v, --verbose                    Show detailed step-by-step output
+  --specguard-folder-name NAME     Use NAME instead of 'specguard' as folder name
+  -h, --help                       Show help message
+
+Arguments:
+  DIRECTORY                        Directory to search (default: current directory)
+```
+
+### Examples
+
+**Verbose output for debugging:**
+
+```bash
+specguard --verbose .
+```
+
+**Custom spec folder name:**
+
+```bash
+specguard --specguard-folder-name requirements .
+```
+
+**CI/CD Integration:**
+
+```bash
+# Exit with code 1 if any specs fail
+specguard . || exit 1
+```
 
 ## Philosophy
 
 specguard embraces simplicity and determinism to solve a universal problem: documenting and enforcing software engineering expectations. The solution doesn't need to be complex—it needs to be reliable, language-agnostic, and easy to run in CI.
 
 By creating deterministic links between expectations and tests, specguard builds the foundation for trustworthy autonomous development.
+
+## Development
+
+### Setup
+
+```bash
+# Clone repository
+git clone https://github.com/dipasqualew/specguard.git
+cd specguard
+
+# Install dependencies
+bun install
+```
+
+### Commands
+
+```bash
+# Run in development mode
+bun run dev [options] [directory]
+
+# Build standalone executable
+bun run build
+
+# Run tests
+bun run test
+
+# Run tests in watch mode
+bun run test:watch
+
+# Run E2E tests only
+bun run test:e2e
+
+# Run tests with coverage
+bun run test:coverage
+```
+
+### Project Structure
+
+```
+specguard/
+├── src/
+│   ├── index.ts        # Main CLI entry point
+│   ├── specguard.ts    # Core verification logic
+│   ├── output.ts       # CLI output formatting
+│   ├── utils.ts        # Utility functions
+│   ├── types.ts        # TypeScript type definitions
+│   └── install.ts      # Installation script
+├── tests/
+│   ├── e2e/            # End-to-end tests
+│   └── fixtures/       # Test fixtures
+├── scripts/
+│   └── build.ts        # Build script
+└── dist/               # Built executables
+```
+
+### Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass (`bun run test`)
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details.
