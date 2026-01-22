@@ -1,6 +1,6 @@
 {
   "name": "specguard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Language-agnostic framework for deterministically mapping behavior expectations to tests",
   "type": "module",
   "bin": {
